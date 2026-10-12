@@ -1,0 +1,38 @@
+
+name: Audeum ticket watch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Get repository files
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install libraries
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Inspect Audeum booking
+        run: python monitor.py
+
+      - name: Save inspection results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audeum-inspection
+          path: inspection/
+          retention-days: 3
+          if-no-files-found: warn
