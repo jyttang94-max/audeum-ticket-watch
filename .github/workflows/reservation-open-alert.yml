@@ -1,0 +1,38 @@
+
+name: Audeum Reservation Open Alert
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 매주 화요일 13:58 KST = 04:58 UTC
+    # Python에서 14일 주기를 다시 확인
+    - cron: "58 4 * * 2"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audeum-reservation-open-alert
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Send reservation opening reminder
+        env:
+          NAVER_EMAIL: ${{ secrets.NAVER_EMAIL }}
+          NAVER_PASSWORD: ${{ secrets.NAVER_PASSWORD }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+        run: python reservation_open_alert.py
